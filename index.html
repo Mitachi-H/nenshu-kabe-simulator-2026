@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学生の年収の壁シミュレーター 2026 ｜ バイト×業務委託 併用対応</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700;800&family=IBM+Plex+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F7F4;
+    --card:#FFFFFF;
+    --ink:#1B2A41;        /* 申告書の藍 */
+    --ink-soft:#48586E;
+    --blue:#2456A6;       /* 公文書ブルー */
+    --blue-pale:#E8EEF8;
+    --red:#C8332B;        /* 朱肉 */
+    --red-pale:#FBEDEB;
+    --green:#2E7D5B;
+    --green-pale:#E9F4EE;
+    --amber:#B97A1F;
+    --amber-pale:#FBF3E3;
+    --line:#D4DAE2;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif:"Shippori Mincho","Hiragino Mincho ProN",serif;
+    --sans:"IBM Plex Sans JP","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} *{transition:none!important;animation:none!important} }
+  body{
+    font-family:var(--sans);
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.7;
+    font-size:15px;
+  }
+  a{color:var(--blue)}
+  .num{font-family:var(--mono);font-feature-settings:"tnum";letter-spacing:-0.01em}
+
+  /* ───────── header ───────── */
+  header{
+    border-bottom:3px double var(--ink);
+    background:var(--card);
+    padding:28px 20px 22px;
+  }
+  .head-inner{max-width:1180px;margin:0 auto}
+  .eyebrow{
+    font-size:12px;letter-spacing:.22em;color:var(--blue);
+    font-weight:700;margin-bottom:6px;
+  }
+  h1{
+    font-family:var(--serif);font-weight:800;
+    font-size:clamp(24px,4vw,38px);line-height:1.35;
+  }
+  h1 .accent{color:var(--red)}
+  .head-note{margin-top:10px;font-size:13px;color:var(--ink-soft);max-width:860px}
+  .head-note strong{color:var(--red)}
+
+  /* ───────── layout ───────── */
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 20px 80px}
+  .grid{display:grid;grid-template-columns:400px 1fr;gap:26px;align-items:start}
+  @media (max-width:960px){ .grid{grid-template-columns:1fr} }
+
+  .panel{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-top:4px solid var(--ink);
+    padding:22px 22px 26px;
+  }
+  .panel + .panel{margin-top:22px}
+  .panel h2{
+    font-family:var(--serif);font-size:18px;font-weight:700;
+    padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:16px;
+    display:flex;align-items:baseline;gap:10px;
+  }
+  .panel h2 .sub{font-family:var(--sans);font-size:11px;color:var(--ink-soft);font-weight:400}
+
+  /* ───────── form ───────── */
+  .form-sticky{position:sticky;top:14px}
+  @media (max-width:960px){ .form-sticky{position:static} }
+  fieldset{border:none;margin-bottom:18px}
+  legend{
+    font-size:12px;font-weight:700;color:var(--blue);
+    letter-spacing:.14em;margin-bottom:8px;
+    display:flex;align-items:center;gap:8px;width:100%;
+  }
+  legend::after{content:"";flex:1;height:1px;background:var(--blue-pale)}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
+  .field .hint{font-size:11px;color:var(--ink-soft);font-weight:400;margin-top:3px}
+  input[type=number],select{
+    width:100%;padding:9px 10px;font-size:15px;
+    border:1px solid var(--line);background:#FDFDFC;color:var(--ink);
+    font-family:var(--mono);border-radius:0;
+  }
+  select{font-family:var(--sans)}
+  input[type=number]:focus,select:focus{outline:2px solid var(--blue);outline-offset:1px;border-color:var(--blue)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .unit-wrap{position:relative}
+  .unit-wrap input{padding-right:42px}
+  .unit-wrap .unit{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--ink-soft)}
+  .check{display:flex;gap:8px;align-items:flex-start;font-size:13px;margin-bottom:8px;cursor:pointer}
+  .check input{margin-top:4px;accent-color:var(--blue);width:15px;height:15px;flex:none}
+  details.adv{border:1px dashed var(--line);padding:10px 12px 14px;margin-top:6px}
+  details.adv summary{cursor:pointer;font-size:12px;font-weight:700;color:var(--ink-soft)}
+  details.adv[open] summary{margin-bottom:10px}
+  .adv-group{
+    font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.14em;
+    margin:16px 0 8px;display:flex;align-items:center;gap:8px;
+  }
+  .adv-group::after{content:"";flex:1;height:1px;background:var(--blue-pale)}
+
+  /* ───────── result cards ───────── */
+  .verdicts{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:14px}
+  .vcard{
+    border:1px solid var(--line);background:var(--card);
+    padding:14px 16px 14px;border-left:5px solid var(--line);
+  }
+  .vcard.ok{border-left-color:var(--green);background:linear-gradient(0deg,var(--card),var(--green-pale) 250%)}
+  .vcard.warn{border-left-color:var(--amber);background:linear-gradient(0deg,var(--card),var(--amber-pale) 250%)}
+  .vcard.ng{border-left-color:var(--red);background:linear-gradient(0deg,var(--card),var(--red-pale) 250%)}
+  .vcard .vlabel{font-size:11px;letter-spacing:.1em;color:var(--ink-soft);font-weight:700;margin-bottom:2px}
+  .vcard .vmain{font-family:var(--serif);font-size:19px;font-weight:700;line-height:1.4}
+  .vcard.ok .vmain{color:var(--green)}
+  .vcard.warn .vmain{color:var(--amber)}
+  .vcard.ng .vmain{color:var(--red)}
+  .vcard .vdetail{font-size:12px;color:var(--ink-soft);margin-top:5px}
+  .vcard .vdetail .num{color:var(--ink)}
+
+  /* ───────── gauge (signature) ───────── */
+  .gauge-block{margin-top:8px}
+  .gauge-title{font-size:13px;font-weight:700;margin:18px 0 40px;display:flex;gap:10px;align-items:baseline}
+  .gauge-title .gsub{font-size:11px;font-weight:400;color:var(--ink-soft)}
+  .gauge{
+    position:relative;height:34px;margin:0 8px 64px;
+    background:
+      repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px calc(100%/28)),
+      linear-gradient(180deg,#FBFCFA,#EFF2EC);
+    border:1px solid var(--ink);
+  }
+  .gauge .wall{position:absolute;top:-6px;bottom:-6px;width:2px;background:var(--blue)}
+  .gauge .wall.hard{background:var(--red);width:3px}
+  .gauge .wall .wl{
+    position:absolute;left:50%;transform:translateX(-50%);
+    white-space:nowrap;font-size:10.5px;line-height:1.35;text-align:center;color:var(--ink-soft);
+  }
+  .gauge .wall .wl b{display:block;font-family:var(--mono);font-size:11px;color:var(--ink)}
+  .gauge .wall.hard .wl b{color:var(--red)}
+  .gauge .wall .wl.top{bottom:calc(100% + 4px)}
+  .gauge .wall .wl.bot{top:calc(100% + 4px)}
+  .gauge .me{
+    position:absolute;top:-12px;bottom:-12px;width:0;
+    border-left:3px solid var(--red);
+    transition:left .35s cubic-bezier(.2,.8,.2,1);
+  }
+  .gauge .me::after{
+    content:"あなた";position:absolute;top:-22px;left:-3px;transform:translateX(-50%);
+    background:var(--red);color:#fff;font-size:10px;font-weight:700;
+    padding:1px 7px;white-space:nowrap;
+  }
+  .gauge .me.over::after{content:"あなた（超過）"}
+
+  /* ───────── tables ───────── */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{font-size:11px;letter-spacing:.08em;color:var(--ink-soft);font-weight:700;background:var(--blue-pale)}
+  td.r,th.r{text-align:right}
+  td .num{font-size:13.5px}
+  tr.total td{border-top:2px solid var(--ink);font-weight:700;background:#FBFCF9}
+  .neg{color:var(--red)}
+  .pos{color:var(--green)}
+
+  /* ───────── notes / sources ───────── */
+  .note-list{font-size:12.5px;color:var(--ink-soft);padding-left:1.3em}
+  .note-list li{margin-bottom:6px}
+  .src-list{font-size:12.5px;padding-left:1.3em}
+  .src-list li{margin-bottom:8px}
+  .src-list .when{color:var(--ink-soft);font-size:11px}
+  .stamp{
+    display:inline-block;border:2px solid var(--red);color:var(--red);
+    font-family:var(--serif);font-weight:700;font-size:12px;
+    padding:2px 10px;transform:rotate(-2deg);margin-left:8px;
+  }
+  .alert-strip{
+    border:1px solid var(--red);background:var(--red-pale);
+    padding:10px 14px;font-size:13px;margin-bottom:14px;display:none;
+  }
+  .alert-strip.show{display:block}
+  .alert-strip b{color:var(--red)}
+  footer{border-top:1px solid var(--line);padding:18px 20px 40px;font-size:11.5px;color:var(--ink-soft);text-align:center}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <div class="eyebrow">令和8年（2026年）分・税制改正対応版</div>
+    <h1>学生の<span class="accent">「年収の壁」</span>シミュレーター<br>― アルバイト × 業務委託 併用対応 ―</h1>
+    <p class="head-note">
+      バイト（給与）と業務委託（事業・雑所得）を組み合わせる場合、世間の「103万／130万の壁」記事はそのまま使えません。
+      <strong>すべての判定は「合計所得金額」や「収入見込み」に読み替える必要があります。</strong>
+      このツールは2025〜2026年の連続税制改正（基礎控除104万円・給与所得控除74万円・特定親族特別控除など）を反映した<strong>概算</strong>シミュレーターです。
+      入力すると右側（スマホでは下）の判定が即時に更新されます。
+    </p>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="grid">
+
+  <!-- ════════════ 入力 ════════════ -->
+  <div class="form-sticky">
+  <section class="panel" aria-label="入力フォーム">
+    <h2>入力 <span class="sub">2026年1〜12月の見込みで入力</span></h2>
+
+    <fieldset>
+      <legend>基本はこの3つだけ</legend>
+      <div class="field">
+        <label for="age">2026/12/31時点の年齢</label>
+        <input type="number" id="age" value="21" min="18" max="29">
+        <div class="hint">税・社保とも12/31時点の年齢で判定。22歳⇄23歳で壁が大きく変わる</div>
+      </div>
+      <div class="field">
+        <label for="salary">バイト年収（全社合計・見込み）</label>
+        <div class="unit-wrap"><input type="number" id="salary" value="1000000" min="0" step="10000"><span class="unit">円</span></div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="gig">業務委託の報酬収入（年）</label>
+          <div class="unit-wrap"><input type="number" id="gig" value="400000" min="0" step="10000"><span class="unit">円</span></div>
+        </div>
+        <div class="field">
+          <label for="expense">必要経費</label>
+          <div class="unit-wrap"><input type="number" id="expense" value="0" min="0" step="10000"><span class="unit">円</span></div>
+          <div class="hint">0でOK。機材・通信費等があれば（領収書保存が前提）</div>
+        </div>
+      </div>
+    </fieldset>
+
+    <details class="adv">
+      <summary>詳細オプション（当てはまる人だけ開く）</summary>
+
+      <div class="adv-group">働き方</div>
+      <div class="row2">
+        <div class="field">
+          <label for="studentType">在学区分</label>
+          <select id="studentType">
+            <option value="day" selected>昼間部（大学・院・専門等）</option>
+            <option value="night">夜間・定時制・通信・休学中</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="hours">週の労働時間（最長の1社）</label>
+          <div class="unit-wrap"><input type="number" id="hours" value="12" min="0" max="60"><span class="unit">時間</span></div>
+          <div class="hint">30時間以上は学生でも社保加入</div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="commute">通勤手当（年額）</label>
+        <div class="unit-wrap"><input type="number" id="commute" value="0" min="0" step="1000"><span class="unit">円</span></div>
+        <div class="hint">税は非課税でも社保の収入には入る</div>
+      </div>
+      <label class="check"><input type="checkbox" id="multiJobs">バイトを2か所以上掛け持ちしている</label>
+
+      <div class="adv-group">業務委託の詳細</div>
+      <div class="field">
+        <label for="aoiro">申告区分</label>
+        <select id="aoiro">
+          <option value="0" selected>雑所得／白色申告（控除なし）★迷ったらこれ</option>
+          <option value="100000">事業所得・青色申告（10万円控除）</option>
+          <option value="550000">事業所得・青色申告（55万円控除）</option>
+          <option value="650000">事業所得・青色申告（65万円控除・e-Tax）</option>
+        </select>
+        <div class="hint">青色は開業届＋承認申請＋帳簿が必要。開業届は親の健保の被扶養認定に影響する場合あり</div>
+      </div>
+      <div class="field">
+        <label for="gensen">源泉徴収された額（任意）</label>
+        <div class="unit-wrap"><input type="number" id="gensen" value="0" min="0" step="1000"><span class="unit">円</span></div>
+        <div class="hint">原稿料・デザイン料等は10.21%天引きされることがある</div>
+      </div>
+      <label class="check"><input type="checkbox" id="kanai">家内労働者等の特例に該当（特定1社への継続的役務提供など）</label>
+      <label class="check"><input type="checkbox" id="strictShaho">社保の被扶養判定で経費を考慮しない（厳しめ判定）<br><span class="hint">健保組合は税法より経費を狭く見ることが多い</span></label>
+
+      <div class="adv-group">家族・税の前提</div>
+      <div class="field">
+        <label for="parentIns">親の健康保険</label>
+        <select id="parentIns">
+          <option value="kenpo" selected>会社の健保（被扶養に入っている）</option>
+          <option value="kokuho">国民健康保険（自営業など）</option>
+          <option value="self">自分で勤め先の社保に加入済み</option>
+        </select>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="parentRate">親の所得税率（限界税率）</label>
+          <select id="parentRate">
+            <option value="0.05">5%（課税所得195万以下）</option>
+            <option value="0.10">10%（〜330万）</option>
+            <option value="0.20" selected>20%★不明ならこれ</option>
+            <option value="0.23">23%（〜900万）</option>
+            <option value="0.33">33%（〜1,800万）</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="kyuchi">住民税の級地（自治体規模）</label>
+          <select id="kyuchi">
+            <option value="450000" selected>1級地：23区・政令市など</option>
+            <option value="415000">2級地：中規模の市</option>
+            <option value="380000">3級地：その他市町村</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="shaho">自分で払う社会保険料（国民年金・国保等の年額）</label>
+        <div class="unit-wrap"><input type="number" id="shaho" value="0" min="0" step="1000"><span class="unit">円</span></div>
+        <div class="hint">国民年金は月17,920円（2026年度）。学生納付特例で猶予中なら0円</div>
+      </div>
+      <label class="check"><input type="checkbox" id="singleParent">ひとり親家庭（親がひとり親控除を使っている）</label>
+      <label class="check"><input type="checkbox" id="jasso">JASSOの給付型奨学金・授業料減免を受けている</label>
+    </details>
+  </section>
+  </div>
+
+  <!-- ════════════ 結果 ════════════ -->
+  <div>
+    <div class="alert-strip" id="alertStrip" role="alert"></div>
+
+    <section class="panel" aria-label="判定結果">
+      <h2>判定サマリー <span class="sub">2026年（令和8年）分・概算</span></h2>
+      <div class="verdicts" id="verdicts"></div>
+    </section>
+
+    <section class="panel" aria-label="壁ゲージ">
+      <h2>壁ゲージ <span class="sub">いま、どの壁の手前にいるか</span></h2>
+
+      <div class="gauge-title">① 税金の壁 <span class="gsub">単位：合計所得金額（給与所得＋業務委託の所得）。0〜140万円</span></div>
+      <div class="gauge" id="gaugeTax" aria-label="税金の壁ゲージ"></div>
+
+      <div class="gauge-title">② 社会保険の壁 <span class="gsub">単位：年間収入見込み（給与＋交通費＋委託収入−経費）。0〜220万円</span></div>
+      <div class="gauge" id="gaugeShaho" aria-label="社会保険の壁ゲージ"></div>
+
+      <p class="hint" style="font-size:12px;color:var(--ink-soft)">
+        青線＝段差・要件ライン、赤線＝手取り逆転が起こりうる「本物の崖」。
+        税の壁は超えても傾斜（増えた分の一部に課税）ですが、社保の被扶養と親の扶養控除（23歳以上）は一発で外れます。
+      </p>
+    </section>
+
+    <section class="panel" aria-label="計算内訳">
+      <h2>計算内訳 <span class="sub">どう判定されているか</span></h2>
+      <table id="breakdown"></table>
+    </section>
+
+    <section class="panel" aria-label="世帯への影響">
+      <h2>世帯インパクト <span class="sub">本人＋親の合算（年間・概算）</span></h2>
+      <table id="household"></table>
+      <p class="hint" style="font-size:12px;color:var(--ink-soft);margin-top:8px" id="householdNote"></p>
+    </section>
+
+    <section class="panel" aria-label="前提と注意">
+      <h2>前提・注意事項 <span class="sub">必ず読むこと</span><span class="stamp">概算</span></h2>
+      <ul class="note-list">
+        <li><b>2026年（令和8年）分の所得税・令和9年度住民税</b>の制度で計算しています。令和8年度税制改正は原則2026年12月1日施行・令和8年分から適用のため、<b>2026年11月までの給与の源泉徴収は旧基準で多めに引かれ、12月の年末調整（または確定申告）で精算</b>されます。</li>
+        <li>住民税の均等割・調整控除・自治体独自の上乗せ、復興特別所得税の端数処理などは標準値で概算しています（誤差±数千円程度）。非課税限度額の級地区分は自治体に確認してください。</li>
+        <li><b>社保の被扶養判定は健保組合ごとに運用が異なります。</b>業務委託の経費をどこまで認めるか、開業届を出した「個人事業主」を被扶養と認めるかは組合次第です。必ず親の健保組合の基準を確認してください。被扶養は暦年ではなく「向こう12か月の見込み・恒常的収入」で判定され、2026年4月以降は労働契約ベースの見込み判定の運用も始まっています。</li>
+        <li>業務委託の収入計上は<b>発生主義（納品・役務提供完了時）が原則</b>です。12月納品・1月入金は2026年分に入ります。給与は一般に支払日ベースです。</li>
+        <li>給与1か所・年末調整済みで「給与以外の所得20万円以下」なら所得税の確定申告は不要ですが、<b>このルールは所得税のみで住民税の申告は別途必要</b>です。</li>
+        <li>株・FX・暗号資産など「勤労によらない所得」、退職所得などがある場合はこのツールの対象外です。勤労学生控除は所得税では2026年分は実質無意味（基礎控除104万円＞要件89万円）で、住民税の所得割にのみ反映しています。</li>
+        <li>最終判断の前に、税務署・市区町村・年金事務所・親の健保組合・税理士等で確認してください。本ツールは一般的な情報提供であり、税務助言ではありません。</li>
+      </ul>
+    </section>
+
+    <section class="panel" aria-label="出典">
+      <h2>出典（一次情報） <span class="sub">2026年6月時点で確認</span></h2>
+      <ol class="src-list">
+        <li>国税庁「令和7年度税制改正による所得税の基礎控除の見直し等について」（基礎控除95万円・給与所得控除65万円・特定親族特別控除の創設）<br>
+          <a href="https://www.nta.go.jp/users/gensen/2025kiso/index.htm" target="_blank" rel="noopener">https://www.nta.go.jp/users/gensen/2025kiso/index.htm</a></li>
+        <li>国税庁「令和8年度税制改正による所得税の基礎控除の引上げ等について」（基礎控除104万円・給与所得控除74万円・扶養親族の所得要件62万円、2026年12月1日施行／令和8年分から適用）<br>
+          <a href="https://www.nta.go.jp/users/gensen/2026kiso/index.htm" target="_blank" rel="noopener">https://www.nta.go.jp/users/gensen/2026kiso/index.htm</a></li>
+        <li>財務省「令和8年度税制改正の大綱」（令和7年12月26日閣議決定。勤労学生89万円、家内労働者等の特例69万円ほか）<br>
+          <a href="https://www.mof.go.jp/tax_policy/tax_reform/outline/fy2026/20251226taikou.pdf" target="_blank" rel="noopener">https://www.mof.go.jp/tax_policy/tax_reform/outline/fy2026/20251226taikou.pdf</a></li>
+        <li>日本年金機構「19歳以上23歳未満の方の被扶養者認定における年間収入要件が変わります」（2025年10月1日以降の認定から150万円未満。配偶者を除く。年齢は12/31時点）<br>
+          <a href="https://www.nenkin.go.jp/oshirase/taisetu/2025/202508/0819.html" target="_blank" rel="noopener">https://www.nenkin.go.jp/oshirase/taisetu/2025/202508/0819.html</a></li>
+        <li>日本年金機構「国民年金保険料」（令和8年度＝月17,920円、付加保険料400円）<br>
+          <a href="https://www.nenkin.go.jp/service/kokunen/hokenryo/hokenryo.html" target="_blank" rel="noopener">https://www.nenkin.go.jp/service/kokunen/hokenryo/hokenryo.html</a></li>
+        <li>日本年金機構「国民年金保険料の学生納付特例制度」（所得基準：128万円＋扶養親族等の数×38万円＋社会保険料控除等。家族の所得は不問）<br>
+          <a href="https://www.nenkin.go.jp/service/kokunen/menjo/20150514.html" target="_blank" rel="noopener">https://www.nenkin.go.jp/service/kokunen/menjo/20150514.html</a></li>
+        <li>厚生労働省「年金制度改正法（2025年6月成立）」（短時間労働者の賃金要件＝いわゆる106万円の壁を2026年10月に撤廃。週20時間以上が基準に。<b>昼間学生は引き続き適用除外</b>、企業規模要件は段階的撤廃）※厚労省サイト内「年金制度改正法」で検索<br>
+          <a href="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/nenkin/nenkin/index.html" target="_blank" rel="noopener">https://www.mhlw.go.jp/（年金制度改正ページ）</a></li>
+        <li>各自治体「令和8年度から適用される個人住民税の税制改正」（給与所得控除65万円の住民税反映、特定親族特別控除〔最大45万円〕の創設、住民税の基礎控除43万円は据え置き）例：大阪市<br>
+          <a href="https://www.city.osaka.lg.jp/zaisei/page/0000661024.html" target="_blank" rel="noopener">https://www.city.osaka.lg.jp/zaisei/page/0000661024.html</a></li>
+      </ol>
+    </section>
+  </div>
+</div>
+</div>
+
+<footer>
+  本シミュレーターは2026年6月時点の法令・公表情報に基づく概算ツールです。制度は変わります。一次情報（上記出典）での確認を推奨します。
+</footer>
+
+<script>
+"use strict";
+/* ════════════════════════════════════════════
+   定数（令和8年・2026年分）
+   ════════════════════════════════════════════ */
+const C = {
+  SALARY_DED_MIN: 740000,        // 給与所得控除の最低保障（本則69万＋令和8・9年特例5万）
+  BASIC_DED: 1040000,            // 基礎控除（合計所得489万円以下）
+  BASIC_DED_RESIDENT: 430000,    // 住民税の基礎控除（改正なし）
+  KINRO_LIMIT: 890000,           // 勤労学生控除の所得要件（令和8年分）
+  KINRO_RESIDENT: 260000,        // 勤労学生控除（住民税）
+  KANAI_MAX: 690000,             // 家内労働者等の特例（令和8年分69万円）
+  FUYO_LIMIT: 620000,            // 扶養控除の所得要件（給与のみなら136万円）
+  PENSION_MONTHLY: 17920,        // 国民年金保険料（令和8年度）
+  GAKUTOKU_LIMIT: 1280000,       // 学生納付特例の所得基準（扶養親族0人）
+  SHAHO_WALL_YOUNG: 1500000,     // 被扶養：19〜22歳（12/31時点）
+  SHAHO_WALL_NORMAL: 1300000,    // 被扶養：23歳以上
+};
+
+// 特定親族特別控除（19〜22歳）: [所得上限, 所得税控除, 住民税控除]
+const TOKUTEI_BRACKETS = [
+  [ 620000, 630000, 450000],  // ここまでは扶養控除（特定扶養親族）
+  [ 850000, 630000, 450000],
+  [ 900000, 610000, 450000],
+  [ 950000, 510000, 450000],
+  [1000000, 410000, 410000],
+  [1050000, 310000, 310000],
+  [1100000, 210000, 210000],
+  [1150000, 110000, 110000],
+  [1200000,  60000,  60000],
+  [1230000,  30000,  30000],
+];
+
+const yen = n => Math.round(n).toLocaleString("ja-JP") + "円";
+const man = n => (n/10000).toLocaleString("ja-JP",{maximumFractionDigits:1}) + "万円";
+
+/* ── 給与所得控除（令和8年分） ── */
+function salaryDeduction(x){
+  if (x <= 2200000) return C.SALARY_DED_MIN;          // 〜220万：74万円
+  if (x <= 3600000) return x*0.30 +  80000;
+  if (x <= 6600000) return x*0.20 + 440000;
+  if (x <= 8500000) return x*0.10 + 1100000;
+  return 1950000;
+}
+
+/* ── 所得税（超過累進・復興税込み） ── */
+function incomeTax(taxable){
+  const t = Math.floor(Math.max(0,taxable)/1000)*1000;
+  let tax;
+  if      (t <= 1950000) tax = t*0.05;
+  else if (t <= 3300000) tax = t*0.10 -  97500;
+  else if (t <= 6950000) tax = t*0.20 - 427500;
+  else if (t <= 9000000) tax = t*0.23 - 636000;
+  else                   tax = t*0.33 - 1536000;
+  return Math.floor(tax*1.021/100)*100;
+}
+
+/* ════════════════════════════════════════════
+   メイン計算
+   ════════════════════════════════════════════ */
+function calc(){
+  const v = id => document.getElementById(id);
+  const num = id => Math.max(0, Number(v(id).value)||0);
+
+  const age        = Math.round(Number(v("age").value)||21);
+  const isDay      = v("studentType").value === "day";
+  const salary     = num("salary");
+  const commute    = num("commute");
+  const hours      = num("hours");
+  const multiJobs  = v("multiJobs").checked;
+  const gig        = num("gig");
+  const expenseIn  = num("expense");
+  const aoiro      = Number(v("aoiro").value);
+  const gensen     = num("gensen");
+  const parentIns  = v("parentIns").value;
+  const parentRate = Number(v("parentRate").value);
+  const kyuchi     = Number(v("kyuchi").value);
+  const shahoPaid  = num("shaho");
+  const kanai      = v("kanai").checked;
+  const strictSh   = v("strictShaho").checked;
+  const singlePar  = v("singleParent").checked;
+  const jasso      = v("jasso").checked;
+
+  /* ── 所得の計算 ── */
+  const salDed   = salary>0 ? Math.min(salary, salaryDeduction(salary)) : 0;
+  const salIncome= Math.max(0, salary - salDed);
+
+  // 家内労働者等の特例：枠69万から「給与収入（控除に使った分）」を差し引いた残りのみ
+  let kanaiUsed = 0;
+  let expense = expenseIn;
+  if (kanai && gig>0){
+    const room = Math.max(0, C.KANAI_MAX - Math.min(salary, C.KANAI_MAX));
+    const minashi = Math.min(room, gig);
+    if (minashi > expenseIn){ expense = minashi; kanaiUsed = minashi; }
+  }
+  const gigBeforeAoiro = Math.max(0, gig - expense);
+  const aoiroUsed = aoiro>0 ? Math.min(aoiro, gigBeforeAoiro) : 0;
+  const gigIncome = Math.max(0, gigBeforeAoiro - aoiroUsed);
+
+  const totalIncome = salIncome + gigIncome;   // 合計所得金額
+
+  /* ── 本人の所得税（2026年分） ── */
+  const taxableNat = Math.max(0, totalIncome - C.BASIC_DED - shahoPaid);
+  const natTax = incomeTax(taxableNat);
+  const refundNote = gensen>0 && natTax < gensen;
+
+  /* ── 本人の住民税（2026年所得 → 令和9年度・2027年6月〜納付） ── */
+  let resTax = 0, resDetail = "";
+  const kinroOK = totalIncome <= C.KINRO_LIMIT; // 学生で勤労所得のみ前提
+  if (totalIncome <= kyuchi){
+    resDetail = "非課税（合計所得が非課税限度額" + man(kyuchi) + "以下）";
+  } else {
+    const kinroDed = kinroOK ? C.KINRO_RESIDENT : 0;
+    const base = Math.max(0, totalIncome - C.BASIC_DED_RESIDENT - shahoPaid - kinroDed);
+    const shotokuwari = Math.max(0, Math.floor(base*0.10) - 2500); // 調整控除2,500円
+    const kintowari = 5000; // 均等割4,000＋森林環境税1,000（標準）
+    resTax = shotokuwari + kintowari;
+    resDetail = "所得割" + yen(shotokuwari) + "＋均等割等" + yen(kintowari)
+      + (kinroDed? "（勤労学生控除26万円適用）" : "");
+  }
+
+  /* ── 親の扶養（税） ── */
+  let pDedNat = 0, pDedRes = 0, pLabel = "", pStatus = "ok", pCliff = false;
+  if (age>=19 && age<=22){
+    if (totalIncome <= C.FUYO_LIMIT){ pDedNat=630000; pDedRes=450000; pLabel="特定扶養控除（満額）"; }
+    else {
+      let hit=false;
+      for (const [lim,nat,res] of TOKUTEI_BRACKETS){
+        if (totalIncome<=lim){ pDedNat=nat; pDedRes=res; hit=true; break; }
+      }
+      pLabel = hit ? "特定親族特別控除" : "控除なし（所得123万円超）";
+      if(!hit) pStatus="ng"; else if(pDedNat<630000) pStatus="warn";
+    }
+  } else if (age>=23){
+    pCliff = true;
+    if (totalIncome <= C.FUYO_LIMIT){ pDedNat=380000; pDedRes=330000; pLabel="一般の扶養控除"; }
+    else { pLabel="控除なし（23歳以上は崖：所得62万円超で全額消滅）"; pStatus="ng"; }
+  } else { pLabel="（19歳未満は特定扶養の対象外・一般扶養38万円で概算）";
+    if (totalIncome<=C.FUYO_LIMIT){pDedNat=380000;pDedRes=330000;} else {pStatus="ng";pLabel="控除なし";}
+  }
+  const pTaxIncrease = Math.max(0,
+      Math.round(((age>=19&&age<=22?630000:380000) - pDedNat) * parentRate * 1.021)
+    + ((age>=19&&age<=22?450000:330000) - pDedRes) * 0.10 );
+
+  /* ── 社会保険（被扶養） ── */
+  const gigForShaho = strictSh ? gig : Math.max(0, gig - expenseIn); // 特例・青色は社保では使えない
+  const shahoIncome = salary + commute + gigForShaho;
+  const shahoWall = (age>=19 && age<=22) ? C.SHAHO_WALL_YOUNG : C.SHAHO_WALL_NORMAL;
+  let shahoStatus="ok", shahoMain="", shahoDetail="";
+  if (parentIns==="self"){
+    shahoStatus="warn"; shahoMain="勤め先の社保に加入中";
+    shahoDetail="被扶養の壁は関係なし。保険料は給与から天引き（業務委託分には社保はかからない）。";
+  } else if (parentIns==="kokuho"){
+    shahoStatus="warn"; shahoMain="親が国保 → 被扶養の壁なし";
+    shahoDetail="国保に「扶養」の概念はなく、あなたの所得増は世帯の国保料増としてじわじわ効く（崖ではない）。";
+  } else if (shahoIncome < shahoWall){
+    shahoMain="被扶養を維持できる見込み";
+    shahoDetail="判定収入 " + yen(shahoIncome) + " ＜ " + man(shahoWall)
+      + "（月換算 " + yen(Math.floor(shahoWall/12)) + " 未満）。"
+      + (age>=23 ? "23歳以上のため130万円基準。" : "19〜22歳のため150万円基準（2025年10月〜）。");
+    if (shahoIncome >= shahoWall*0.9){ shahoStatus="warn"; shahoMain="被扶養ギリギリ（残り" + man(shahoWall-shahoIncome) + "）"; }
+  } else {
+    shahoStatus="ng"; shahoMain="被扶養から外れる見込み";
+    shahoDetail="判定収入 " + yen(shahoIncome) + " ≧ " + man(shahoWall)
+      + "。国保＋（20歳以上は）国民年金を自分で負担。判定は暦年でなく「向こう12か月の見込み」。";
+  }
+  const kokuhoEst = (shahoStatus==="ng")
+    ? Math.max(30000, Math.round((Math.max(0,totalIncome-430000))*0.10 + 55000)) : 0;
+
+  /* ── 勤め先での社保加入リスク ── */
+  let alerts = [];
+  if (hours >= 30) alerts.push("週30時間以上（正社員の3/4以上）のため、<b>学生でも勤め先の社会保険に強制加入</b>となり、親の被扶養から外れます。");
+  else if (!isDay && hours >= 20) alerts.push("夜間・通信・休学中は「学生除外」の対象外。週20時間以上のため、適用拡大企業では社保加入対象になり得ます（2026年10月からは賃金要件なし）。");
+  if (parentIns==="kenpo" && aoiro>0) alerts.push("青色申告＝開業届の提出が前提です。<b>「個人事業主」を被扶養と認めない健保組合があります。</b>親の健保組合に事前確認を。");
+  if (singlePar && totalIncome > C.FUYO_LIMIT) alerts.push("子の合計所得が62万円を超えると、<b>親のひとり親控除（所得税38万円・令和8年分）も消滅</b>します。判定サマリーの親側増税には未算入です。");
+  if (jasso) alerts.push("給付型奨学金・授業料減免の支援区分には<b>本人の住民税課税情報も合算</b>されます。稼ぎすぎで区分が下がると年数十万円規模の影響があり得るため、JASSOの算定式で必ず確認してください（本ツールでは計算していません）。");
+
+  /* ── 学生納付特例 ── */
+  const gakutokuOK = totalIncome <= C.GAKUTOKU_LIMIT;
+
+  /* ── 確定申告 ── */
+  let filing="", filingStatus="ok";
+  if (multiJobs){ filing="確定申告が必要（給与2か所以上）"; filingStatus="warn"; }
+  else if (gigIncome + 0 > 200000 || gigBeforeAoiro > 200000){ filing="確定申告が必要（給与以外の所得20万円超）"; filingStatus="warn"; }
+  else if (gig>0){ filing="所得税の申告は不要だが住民税の申告は必要"; filingStatus="warn"; }
+  else { filing="年末調整のみでOK（給与1か所なら）"; }
+  if (refundNote) filing += "。源泉徴収" + yen(gensen) + "は申告で還付の可能性大";
+
+  /* ════════ 描画 ════════ */
+  const strip = document.getElementById("alertStrip");
+  if (alerts.length){ strip.classList.add("show"); strip.innerHTML = "⚠ " + alerts.join("<br>⚠ "); }
+  else strip.classList.remove("show");
+
+  const cards = [];
+  cards.push({
+    cls: natTax===0?"ok":"warn", label:"① 本人の所得税（2026年分）",
+    main: natTax===0 ? "0円（非課税）" : yen(natTax),
+    det: "合計所得 <span class='num'>"+man(totalIncome)+"</span> − 基礎控除104万円"
+        +(shahoPaid?"−社保控除":"")+"。給与のみなら178万円まで非課税"
+  });
+  cards.push({
+    cls: resTax===0?"ok":"warn", label:"② 本人の住民税（2027年6月〜請求）",
+    main: resTax===0 ? "0円（非課税）" : "約"+yen(resTax),
+    det: resDetail + "。住民税の壁は所得税よりずっと低い点に注意"
+  });
+  cards.push({
+    cls: pStatus, label:"③ 親の税扶養（"+(age>=19&&age<=22?"19〜22歳":"23歳以上")+"）",
+    main: pDedNat>0 ? pLabel+" "+man(pDedNat) : pLabel,
+    det: pTaxIncrease>0
+      ? "子の収入ゼロ時と比べ親は <b class='neg num'>＋"+yen(pTaxIncrease)+"/年</b> の増税（税率"+(parentRate*100)+"%想定）"
+      : "親の控除は満額キープ（所得税"+man(pDedNat)+"／住民税"+man(pDedRes)+"）"
+  });
+  cards.push({ cls: shahoStatus, label:"④ 健康保険の被扶養（社保の壁）", main: shahoMain,
+    det: shahoDetail + (kokuhoEst? " <b>国保概算 約"+yen(kokuhoEst)+"/年</b>（自治体差大）":"") });
+  cards.push({
+    cls: gakutokuOK?"ok":"warn", label:"⑤ 国民年金（20歳以上・月17,920円）",
+    main: gakutokuOK ? "学生納付特例を使える見込み" : "学生納付特例の基準超え",
+    det: gakutokuOK
+      ? "本人の前年所得128万円以下が基準（親の所得は不問）。猶予中は年金額に反映されないため10年以内の追納を検討"
+      : "合計所得"+man(totalIncome)+"＞128万円。納付（年約21.5万円）が必要。納付分は社会保険料控除に"
+  });
+  cards.push({ cls: filingStatus, label:"⑥ 確定申告・住民税申告", main: filing.split("。")[0],
+    det: filing.includes("。")? filing.slice(filing.indexOf("。")+1) : "業務委託があるなら帳簿・取引記録の保存を" });
+
+  document.getElementById("verdicts").innerHTML = cards.map(c=>
+    "<div class='vcard "+c.cls+"'><div class='vlabel'>"+c.label+"</div><div class='vmain'>"+c.main+"</div><div class='vdetail'>"+c.det+"</div></div>"
+  ).join("");
+
+  /* ── ゲージ ── */
+  drawGauge("gaugeTax", 1400000, totalIncome, [
+    {at:kyuchi,   label:"住民税課税",   sub:"級地で変動", hard:false},
+    {at:620000,   label:"親の扶養控除", sub:"給与のみ136万", hard:(age>=23)},
+    {at:850000,   label:"特親控除 満額63万", sub:"給与のみ159万", hard:false, hide:(age>=23)},
+    {at:1040000,  label:"本人の所得税", sub:"給与のみ178万", hard:false},
+    {at:1230000,  label:"特親控除 消滅", sub:"給与のみ197万", hard:false, hide:(age>=23)},
+    {at:1280000,  label:"年金 学生特例", sub:"前年所得で判定", hard:false},
+  ]);
+  drawGauge("gaugeShaho", 2200000, shahoIncome, [
+    {at:1300000, label:"被扶養の壁（23歳〜）", sub:"月108,334円", hard:(age>=23||age<19)},
+    {at:1500000, label:"被扶養の壁（19〜22歳）", sub:"月125,000円", hard:(age>=19&&age<=22)},
+  ]);
+
+  /* ── 内訳テーブル ── */
+  const bd = [];
+  bd.push(["バイト年収（給与収入）", yen(salary)]);
+  bd.push(["　− 給与所得控除", "−"+yen(salDed)+"（最低保障74万円）"]);
+  bd.push(["＝ 給与所得", "<b>"+yen(salIncome)+"</b>"]);
+  bd.push(["業務委託の報酬収入", yen(gig)]);
+  bd.push(["　− 必要経費"+(kanaiUsed?"（家内労働者等の特例適用）":""), "−"+yen(expense)]);
+  if (aoiroUsed) bd.push(["　− 青色申告特別控除", "−"+yen(aoiroUsed)]);
+  bd.push(["＝ 業務委託の所得（事業／雑）", "<b>"+yen(gigIncome)+"</b>"]);
+  bd.push(["<b>合計所得金額（税の判定に使う数字）</b>", "<b class='num'>"+yen(totalIncome)+"</b>"]);
+  bd.push(["社保の被扶養判定に使う収入<br><span class='hint'>給与＋交通費＋委託収入"+(strictSh?"（経費控除なし・厳しめ）":"−経費（組合により否認あり）")+"</span>", "<b class='num'>"+yen(shahoIncome)+"</b>"]);
+  if (kanai && !kanaiUsed && gig>0) bd.push(["家内労働者等の特例", "<span class='hint'>給与収入が69万円以上のため枠が残らず不適用（給与所得控除と枠共通）</span>"]);
+  document.getElementById("breakdown").innerHTML =
+    "<tr><th>項目</th><th class='r'>金額</th></tr>" +
+    bd.map(r=>"<tr><td>"+r[0]+"</td><td class='r num'>"+r[1]+"</td></tr>").join("");
+
+  /* ── 世帯テーブル ── */
+  const gross = salary + commute + gig;
+  const hh = [];
+  hh.push(["あなたの総収入（交通費込み）", yen(gross), ""]);
+  hh.push(["本人の所得税（2026年分）", natTax? "−"+yen(natTax):"0円", "neg"]);
+  hh.push(["本人の住民税（2027年度・概算）", resTax? "−"+yen(resTax):"0円", "neg"]);
+  hh.push(["国民年金（納付する場合）", gakutokuOK? "0円〜−215,040円（特例で猶予可）":"−"+yen(C.PENSION_MONTHLY*12), "neg"]);
+  if (kokuhoEst) hh.push(["（参考）国保保険料の超概算", "−約"+yen(kokuhoEst), "neg"]);
+  hh.push(["親の増税（扶養控除の減少分）", pTaxIncrease? "−"+yen(pTaxIncrease):"0円", "neg"]);
+  const netMin = gross - natTax - resTax - pTaxIncrease - kokuhoEst - (gakutokuOK?0:C.PENSION_MONTHLY*12);
+  hh.push(["<b>世帯ネット（年金を猶予した場合の最大値）</b>", "<b>"+yen(netMin)+"</b>", "total"]);
+  document.getElementById("household").innerHTML =
+    "<tr><th>項目</th><th class='r'>年額</th></tr>" +
+    hh.map(r=>"<tr class='"+(r[2]==="total"?"total":"")+"'><td>"+r[0]+"</td><td class='r num "+(r[2]==="neg"?"neg":"")+"'>"+r[1]+"</td></tr>").join("");
+  document.getElementById("householdNote").textContent =
+    "※ 親の会社の家族手当（規程次第で年12〜24万円規模）はここに含まれていません。親の勤務先の支給基準（103万円基準のまま据え置きの会社も多い）を必ず確認してください。";
+}
+
+/* ── ゲージ描画 ── */
+function drawGauge(id, max, pos, walls){
+  const g = document.getElementById(id);
+  let html = "";
+  let topSide = true;
+  walls.filter(w=>!w.hide).forEach(w=>{
+    const pct = Math.min(100, w.at/max*100);
+    html += "<div class='wall"+(w.hard?" hard":"")+"' style='left:"+pct+"%'>"
+          + "<span class='wl "+(topSide?"top":"bot")+"'><b>"+man(w.at)+"</b>"+w.label+"<br><span style='font-size:9.5px'>"+(w.sub||"")+"</span></span></div>";
+    topSide = !topSide;
+  });
+  const mePct = Math.min(100, pos/max*100);
+  html += "<div class='me"+(pos>max?" over":"")+"' style='left:"+mePct+"%'></div>";
+  g.innerHTML = html;
+}
+
+document.querySelectorAll("input,select").forEach(el=>{
+  el.addEventListener("input", calc);
+  el.addEventListener("change", calc);
+});
+calc();
+</script>
+</body>
+</html>
